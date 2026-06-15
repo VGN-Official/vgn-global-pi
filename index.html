@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Bauchi Sentinel Grid | The Electorate Rapid-Response Layer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0b5394">
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="manifest" href="manifest.json">
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker Registered!'))
+                    .catch(err => console.log('SW Registration Failed:', err));
+            });
+        }
+    </script>
+
+    <style>
+        :root {
+            --apc-blue: #0b5394;
+            --apc-green: #38761d;
+            --sos-red: #dc2626;
+            --card-bg: #1e293b;
+        }
+        
+        body { 
+            margin: 0; 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background: radial-gradient(circle at top, #0a192f 0%, #0a192f 100%); 
+            background-attachment: fixed;
+            color: #073869;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #334155;
+        }
+        .logo { font-size: 1.4rem; font-weight: bold; color: var(--sos-red); letter-spacing: 1px; }
+
+        .grid-layout {
+            display: block; 
+            width: 100%;
+        }
+
+        .left-column, .right-column {
+            width: 100% !important; 
+            display: block;
+            margin-bottom: 25px;   
+        }
+
+        @media (min-width: 992px) {
+            .grid-layout { 
+                display: flex; 
+                flex-direction: row; 
+                gap: 30px;
+                align-items: flex-start; 
+            }
+            .left-column { 
+                flex: 1.1; 
+                position: sticky; 
+                top: 20px; 
+                margin-bottom: 0;
+            }
+            .right-column { 
+                flex: 1; 
+                margin-bottom: 0;
+            }
+        }
+
+        .candidate-card {
+            background: #0d1e36;
+            border-radius: 16px;
+            padding: 25px;
+            border-top: 5px solid var(--apc-green);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+        .avatar-frame {
+            width: 250px;          
+            height: 250px;         
+            border-radius: 50%;    
+            background: #899ebe;
+            margin: 0 auto 15px;
+            border: 4px solid #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(220, 38, 38, 0.4), 0 0 25px rgba(34, 197, 94, 0.2);
+        }
+        .avatar-frame img { width: 250px; height: 250px; object-fit: cover; }
+        .bio-tag { background: #334155; padding: 6px 12px; border-radius: 20px; font-size: 1.78rem; margin: 4px; display: inline-block; color: #cbd5e1; }
+
+        .sos-panel {
+            background: #bae2ce;
+            border: 2px solid #1e3a5f; 
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            backdrop-filter: blur(8px); 
+        }
+        .sos-circle-trigger {
+            width: 210px;          
+            height: 210px;          
+            border-radius: 50%;     
+            overflow: hidden;       
+            background: transparent;
+            cursor: pointer;
+            margin: 20px auto;
+            filter: drop-shadow(0px 8px 20px rgba(220, 38, 38, 0.4)); 
+            transition: transform 0.1s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .sos-circle-trigger:active { transform: scale(0.95); }
+
+        .input-group-title {
+            font-size: 2.5rem;
+            color: #94a3b8;
+            margin: 20px 0 10px;
+            text-align: center;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-left: 3px solid var(--apc-blue);
+            padding-left: 8px;
+        }
+
+        .input-field {
+            display: block; margin: 8px auto; padding: 12px; width: 50%; 
+            border-radius: 8px; border: 1px solid #475569; background: #0f172a; 
+            color: white; font-size: 1.9rem; box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        .input-field:focus { border-color: var(--apc-blue); outline: none; }
+        .sub-text { font-size: 1.72rem; color: #64748b; margin-top: 5px; text-align: left; }
+    
+        /* Base styles for the overlay */
+        .modal-overlay {
+            display: none;                     
+            position: fixed;
+            top: 0; left: 0; 
+            width: 120%; height: 100%;
+            background: rgba(4, 11, 28, 0.85); 
+            backdrop-filter: blur(8px);       
+            z-index: 99999;                    
+            align-items: center; 
+            justify-content: center;
+        }
+
+        /* Active helper class */
+        .modal-overlay.active {
+            display: flex !important;          
+        }
+
+        .modal-content {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 16px;
+            width: 90%; max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            text-align: center;
+            border-top: 5px solid #002f6c; 
+        }
+
+        .modal-content h3 { color: #002f6c; margin-top: 0; font-size: 1.3rem; }
+        .modal-content p { color: #555; font-size: 0.95rem; margin-bottom: 20px; }
+
+        .lga-dropdown {
+            width: 120%; padding: 12px;
+            border: 2px solid #e0e0e0; border-radius: 8px;
+            font-size: 1rem; color: #333; font-weight: 600;
+            margin-bottom: 20px; background-color: #f8f9fa;
+        }
+
+        .modal-actions { display: flex; gap: 10px; }
+        .btn-dispatch {
+            flex: 2; background: #d32f2f; color: white; border: none;
+            padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;
+        }
+        .btn-cancel {
+            flex: 1; background: #e0e0e0; color: #333; border: none;
+            padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="logo">
+            <i class="fa-solid fa-shield-halved" style="color: #e99311cc;"> The Bauchi Sentinel Grid</i>
+        </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 90px; height: 90px; border-radius: 6px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid var(--apc-blue); padding: 2px; box-sizing: border-box;">
+                <img src="icon1.png" alt="PDP Logo" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+        </div>
+    </header>
+
+    
+
+
+
+        <div class="right-column">
+            <div class="sos-panel">
+                <div id="timer" style="font-size: 1.8rem; font-weight: bold; color: var(--sos-red);"></div>
+                <div id="statusMsg" style="font-weight: bold; margin-bottom: 10px; color: #e99311cc; font-size: 1.9rem;">SYSTEM ARMED: READY</div>
+                
+                <div id="changeZoneContainer" style="margin-bottom: 15px;">
+                    <button id="triggerChangeZone" style="background: none; border: none; color: #126be9; font-size: 1.5rem; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0;">
+                        🔄 Change Location Grid
+                    </button>
+                </div>
+
+                <div id="sos-btn" class="sos-circle-trigger">
+                    <img src="Button.png" alt="SOS Trigger Button" style="width: 100%; border-radius: 50%; pointer-events: none;">
+                </div>
+                
+                <button id="stop-btn">
+                    CANCEL DISTRESS PROTOCOL
+                </button>
+
+                <div style="margin-top: 25px; border-top: 1px solid #e99311cc; padding-top: 15px;">
+                    <div class="input-group-title" style="color: #e99311cc;">Citizen Identity Verification</div>
+                    <input type="text" id="bloodGroup" placeholder="Identity Profile" class="input-field">
+                    <input type="text" id="allergies" placeholder="Residence/Compound Area" class="input-field">
+                    <p class="sub-text">Identity profile dynamically appends to coordinates during emergency transmissions.</p>
+                </div>
+                
+                <div id="vgn-settings" style="margin-top: 25px; background: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid #334155;  box-sizing: border-box;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label for="stealthToggle" style="color: #cbd5e1; font-size: 1.9rem; font-weight: 500; cursor: pointer;">Tactical Stealth Mode (Silent SOS)</label>
+                        <input type="checkbox" id="stealthToggle" style="width: 22px; height: 22px; cursor: pointer;">
+                    </div>
+                </div>
+
+                <div id="lgaModal" class="modal-overlay">
+                    <div class="modal-content">
+                        <h3><span class="shield-icon">🛡️</span> Select Location Grid</h3>
+                        <p>Identify your current Local Government Area for immediate tactical routing:</p>
+                        
+                
+                        <select id="lgaSelector" class="input-field" style="width: 100%; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+                            <optgroup label="(Bauchi South)">
+                                <option value="bauchi" selected>Bauchi LGA (Capital Command)</option>
+                                <option value="toro">Toro LGA Command</option>
+                                <option value="alkaleri">Alkaleri LGA Command</option>
+                                <option value="bogoro">Bogoro LGA Command</option>
+                                <option value="dass">Dass LGA Command</option>
+                                <option value="kirfi">Kirfi LGA Command</option>
+                                <option value="tafawa_balewa">Tafawa Balewa LGA Command (Bununu)</option>
+                            </optgroup>
+
+                            <optgroup label="(Bauchi Central)">
+                                <option value="misau">Misau LGA Command</option>
+                                <option value="ningi">Ningi LGA Command</option>
+                                <option value="dambam">Dambam LGA Command</option>
+                                <option value="darazo">Darazo LGA Command</option>
+                                <option value="ganjuwa">Ganjuwa LGA Command (Kafin Madaki)</option>
+                                <option value="warji">Warji LGA Command</option>
+                            </optgroup>
+
+                            <optgroup label="(Bauchi North)">
+                                <option value="katagum">Katagum LGA Command (Azare)</option>
+                                <option value="gamawa">Gamawa LGA Command</option>
+                                <option value="giade">Giade LGA Command</option>
+                                <option value="itas_gadau">Itas/Gadau LGA Command</option>
+                                <option value="jamaare">Jama'are LGA Command</option>
+                                <option value="shira">Shira LGA Command (Yana)</option>
+                                <option value="zaki">Zaki LGA Command (Sakwa)</option>
+                            </optgroup>
+                        </select>
+
+                        <div class="modal-actions">
+                            <button id="confirmLgaBtn" class="btn-dispatch">PROCEED TO DISPATCH</button>
+                            <button id="closeLgaBtn" class="btn-cancel">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px; border-top: 1px solid #334155; padding-top: 20px; text-align: left;">
+                    <h4 style="margin: 0 0 5px; color: #fff; font-size: 1rem;">Feedback</h4>
+                    <p style="font-size: 1.8rem; color: #126be9; margin: 0 0 15px;">Report regional tactical anomalies directly to the infrastructure dev squad.</p>
+                    
+                    <form action="https://api.staticforms.xyz/submit" method="post">
+                        <input type="hidden" name="accessKey" value="sf_994c7c62301ad637286a6c00"> 
+                        <input type="hidden" name="subject" value="APC Campus Sentinel Feedback Matrix">
+
+                        <input type="text" name="name" placeholder="Reporter Identifier (Name/Dept)" required class="input-field">
+                        <textarea name="message" placeholder="Log status anomalies or operational requests here..." required class="input-field" style="height: 70px; resize: none;"></textarea>
+                        
+                        <button type="submit" style="width: 100%; background: var(--apc-blue); color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1.9rem; margin-top: 5px;">
+                            SUBMIT INTEGRITY STATUS
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<footer style="margin-top: 40px; padding: 20px 0; text-align: center; font-size: 1.75rem; color: #22c55e; line-height: 1.5; border-top: 1px solid #334155;">
+       
+        <p>Telemetry structures, cached maps, and device signatures remain localized within storage sectors.</p>
+        <p>© 2026 Vigilan-NG Architecture Suite. All Rights Reserved.</p>
+</footer>
+</div>
+
+<audio id="sirenAudio" src="siren.mp3" preload="auto" loop></audio>
+<script src="app.js"></script>
+
+</body>
+</html>
