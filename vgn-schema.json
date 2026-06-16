@@ -1,0 +1,58 @@
+{
+  "vgn_framework_version": "2.0.0-global",
+  "supported_regions": {
+    "NG-BAU": {
+      "region_name": "Bauchi State, Nigeria",
+      "currency": "NGN",
+      "routing_medium": "SMS",
+      "sectors": {
+        "bauchi_metropolitan": {
+          "dispatch_unit": "Central HQ (Yandoka Road)",
+          "gateway_node": "+2348151849417",
+          "local_hazards": ["Market Fire", "LPG Outbreak", "Structural Incident"]
+        },
+        "aleri_sector": {
+          "dispatch_unit": "Alkaleri Command Outpost",
+          "gateway_node": "+2348150000000",
+          "local_hazards": ["Agro Field Alert", "Grazing Reserve Conflict"]
+        }
+      }
+    },
+    "ML-MOP": {
+      "region_name": "Mopti Region, Mali (Sahel Zone)",
+      "currency": "XOF",
+      "routing_medium": "SMS",
+      "sectors": {
+        "bandiagara_sector": {
+          "dispatch_unit": "Bandiagara Rural Civil Protection",
+          "gateway_node": "+22370000000",
+          "local_hazards": ["Agro Corridor Incursion", "Critical Supply Chain Ambush"]
+        }
+      }
+    },
+    "SO-GED": {
+      "region_name": "Gedo Region, Somalia",
+      "currency": "SOS",
+      "routing_medium": "SMS",
+      "sectors": {
+        "bardera_sector": {
+          "dispatch_unit": "Bardera Community Safety Hub",
+          "gateway_node": "+25261000000",
+          "local_hazards": ["Resource Point Conflict", "Remote Telemetry Distress"]
+        }
+      }
+    },
+    "CO-NSA": {
+      "region_name": "Norte de Santander, Colombia",
+      "currency": "COP",
+      "routing_medium": "SMS_GATEWAY",
+      "sectors": {
+        "catatumbo_sector": {
+          "dispatch_unit": "Catatumbo Rural Civil Defense",
+          "gateway_node": "+57300000000",
+          "local_hazards": ["Terrain Displacement Alert", "Agricultural Hub Fire"]
+        }
+      }
+    }
+  }
+}

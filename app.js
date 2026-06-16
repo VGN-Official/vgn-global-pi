@@ -1,62 +1,95 @@
-// 1. GLOBAL STATE MATRIX
+// ==========================================
+// 🌐 VGN GLOBAL SYSTEMS ARCHITECTURE CORE
+// ==========================================
 let isSent = false;
 let countdown;
 let timeLeft = 3;
 
-/// UPDATED COMPREHENSIVE CONTROL GRID REGISTRY
-const BauchiSecurityRegistry = {
-    state_hq: { unit: "Bauchi State Command Headquarters", dispatch: "08151849417" },
-    lgas: {
-        // --- BAUCHI SOUTH DISTRICT ---
-        "bauchi": { unit: "Capital Control Room Desk", dispatch: "08151849417" },
-        "toro": { unit: "Toro Axis Command Desk", dispatch: "08127162434" },
-        "alkaleri": { unit: "Alkaleri Divisional Link", dispatch: "08151849417" },
-        "bogoro": { unit: "Bogoro Operational Link", dispatch: "07031961762" },
-        "dass": { unit: "Dass Divisional Link", dispatch: "08050404039" },
-        "kirfi": { unit: "Kirfi Sector Link", dispatch: "08151849417" },
-        "tafawa_balewa": { unit: "Tafawa Balewa Control Desk", dispatch: "08127162434" },
+let currentGlobalSchema = {};
+let activeRegionData = null;
+let currentPioneerUsername = "Standalone Operator";
 
-        // --- BAUCHI CENTRAL DISTRICT ---
-        "misau": { unit: "Misau Zonal Control Desk", dispatch: "08151849417" },
-        "ningi": { unit: "Ningi Axis Command Desk", dispatch: "08151849417" },
-        "dambam": { unit: "Dambam Sector Link", dispatch: "07031961762" },
-        "darazo": { unit: "Darazo Operational Desk", dispatch: "08050404039" },
-        "ganjuwa": { unit: "Ganjuwa Divisional Link", dispatch: "08151849417" },
-        "warji": { unit: "Warji Sector Link", dispatch: "08151849417" },
-
-        // --- BAUCHI NORTH DISTRICT ---
-        "katagum": { unit: "Azare Zonal Command Control", dispatch: "08084763669" },
-        "gamawa": { unit: "Gamawa Sector Link", dispatch: "08084763669" },
-        "giade": { unit: "Giade Operational Link", dispatch: "07031961762" },
-        "itas_gadau": { unit: "Itas/Gadau Divisional Link", dispatch: "08084763669" },
-        "jamaare": { unit: "Jama'are Division Control Desk", dispatch: "08084763669" },
-        "shira": { unit: "Shira Sector Link", dispatch: "08050404039" },
-        "zaki": { unit: "Zaki Border Sector Link", dispatch: "08151849417" }
+// 1. DYNAMIC LOCATION SCHEMA INITIALIZER
+async function initializeVgnGlobalEngine(regionCode = "NG-BAU") {
+    try {
+        // Fetch the externalized layout manifest
+        const response = await fetch('./vgn-schema.json');
+        currentGlobalSchema = await response.json();
+        
+        // Isolate the specific region selected by the Pioneer
+        activeRegionData = currentGlobalSchema.supported_regions[regionCode];
+        console.log(`VGN Engine Active: Optimized for ${activeRegionData.region_name}`);
+        
+        // Populate dropdown options inside your UI modal dynamically
+        renderDynamicUIComponents();
+        
+        // Setup initial armed state message
+        updateArmedStatusDisplay();
+    } catch (error) {
+        console.error("VGN Critical: Configuration injection failed:", error);
+        document.getElementById('statusMsg').innerText = "CRITICAL CONFIGURATION ERROR";
     }
-};
+}
 
-const smsUrlBuilder = (number, body) => {
-    const cleanNumber = number.replace(/\s+/g, '');
+// Dynamically inject the active region's sectors into your HTML dropdown selector
+function renderDynamicUIComponents() {
+    const lgaSelector = document.getElementById('lgaSelector');
+    if (!lgaSelector || !activeRegionData) return;
+    
+    // Clear existing hardcoded options
+    lgaSelector.innerHTML = "";
+    
+    // Read sectors dynamically from your JSON config
+    Object.keys(activeRegionData.sectors).forEach(sectorKey => {
+        const sector = activeRegionData.sectors[sectorKey];
+        const option = document.createElement('option');
+        option.value = sectorKey;
+        option.text = `${sector.dispatch_unit} (${activeRegionData.region_name})`;
+        lgaSelector.appendChild(option);
+    });
+}
+
+function updateArmedStatusDisplay() {
+    const statusMsg = document.getElementById('statusMsg');
+    let savedSectorZone = localStorage.getItem('vgn_active_lga');
+    
+    if (savedSectorZone && activeRegionData && activeRegionData.sectors[savedSectorZone]) {
+        statusMsg.innerHTML = `SYSTEM ARMED: ${savedSectorZone.toUpperCase()} SECTOR ON ALERT`;
+    } else {
+        // If they open the app and have never picked a sector, pop open configuration modal instantly
+        const lgaModal = document.getElementById('lgaModal');
+        if (lgaModal) setTimeout(() => { lgaModal.classList.add('active'); }, 600);
+    }
+}
+
+// 2. CROSS-PLATFORM SYSTEM TELEMETRY PAYLOAD ROUTER
+const vgnGlobalPayloadGenerator = (targetGateway, telemetryPayload) => {
+    const cleanNode = targetGateway.replace(/\s+/g, '');
+    
+    // 🍏 Device / OS Context Sniffer
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    const separator = isIOS ? ';' : '?';
-    const encodedBody = encodeURIComponent(body);
-    return `sms:${cleanNumber || "+2348151849417"}${separator}body=${encodedBody}`;
+    const operatorSymbol = isIOS ? ';' : '?';
+    
+    // Safely encode the telemetry string to bypass cellular character drops
+    const serializedData = encodeURIComponent(telemetryPayload);
+    
+    return `sms:${cleanNode}${operatorSymbol}body=${serializedData}`;
 };
 
-const showSmsButton = (body, specificLgaNumber) => {
+const showSmsButton = (body, targetGatewayNumber) => {
     const statusMsg = document.getElementById('statusMsg');
     const c2 = localStorage.getItem('vgn_contact2') || "";
 
     let buttonsHTML = `<div style="margin-top:15px;">`;
     buttonsHTML += `
-        <a href="${smsUrlBuilder(specificLgaNumber, body)}" style="background: #d32f2f; display:block; padding: 22px; color: white; border-radius: 15px; text-decoration: none; font-weight: bold; text-align: center; margin-bottom:15px; border-bottom: 5px solid #b71c1c; font-size: 1.1em;">
-           🚨 DISPATCH ENCRYPTED COMPASS LOGS NOW
+        <a href="${vgnGlobalPayloadGenerator(targetGatewayNumber, body)}" style="background: #d32f2f; display:block; padding: 22px; color: white; border-radius: 15px; text-decoration: none; font-weight: bold; text-align: center; margin-bottom:15px; border-bottom: 5px solid #b71c1c; font-size: 1.1em;">
+            🚨 DISPATCH ENCRYPTED COMPASS LOGS NOW
         </a>`;
 
     if (c2) {
         buttonsHTML += `
-            <a href="${smsUrlBuilder(c2, body)}" style="background: #455A64; display:block; padding: 20px; color: white; border-radius: 15px; text-decoration: none; font-weight: bold; text-align: center; border-bottom: 5px solid #263238;">
+            <a href="${vgnGlobalPayloadGenerator(c2, body)}" style="background: #455A64; display:block; padding: 20px; color: white; border-radius: 15px; text-decoration: none; font-weight: bold; text-align: center; border-bottom: 5px solid #263238;">
                 🛡️ Alert Secondary Backup Unit 
             </a>`;
     }
@@ -75,8 +108,35 @@ window.stopAll = () => {
     }
 };
 
-// 2. MAIN APPLICATION LOGIC LOOP
+// 3. PI APP PLATFORM INTEGRATION WINDOW & APPLICATION EVENT LOOPS
 document.addEventListener('DOMContentLoaded', () => {
+    // Start up dynamic localization layer (Defaulting to your active Bauchi target)
+    initializeVgnGlobalEngine("NG-BAU");
+
+    // Initialize Pi SDK for Global Pioneers
+    if (typeof Pi !== 'undefined') {
+        Pi.init({ version: "2.0", sandbox: true });
+        
+        const runtimeScopes = ['username', 'payments'];
+        Pi.authenticate(runtimeScopes, (incompletePayment) => {
+            console.log("Resolving pending secure ledger entries:", incompletePayment);
+        }).then((auth) => {
+            currentPioneerUsername = auth.user.username;
+            console.log(`Global VGN Session Verified. Welcome Pioneer: ${currentPioneerUsername}`);
+            
+            // 🎯 VISUAL VERIFICATION HOOK:
+            // This updates your armed banner text instantly on screen so you can confirm it works!
+            const statusMsg = document.getElementById('statusMsg');
+            if (statusMsg) {
+                statusMsg.innerHTML = `<span style="color: #388E3C; font-weight: bold;">🟢 SECURITY LOCK VERIFIED: Welcome, Pioneer ${currentPioneerUsername}</span>`;
+            }
+
+        }).catch((err) => {
+            console.warn("Local standalone execution mode active (Running outside Pi Browser sandbox).", err);
+        });
+    }
+
+    // UI Core Selectors
     const sosButton = document.getElementById('sos-btn');
     const statusMsg = document.getElementById('statusMsg');
     const timerDisplay = document.getElementById('timer');
@@ -85,40 +145,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const stealthToggle = document.getElementById('stealthToggle');
     const bloodInput = document.getElementById('bloodGroup');
     const allergiesInput = document.getElementById('allergies');
-   const triggerChangeZone = document.getElementById('triggerChangeZone');
+    const triggerChangeZone = document.getElementById('triggerChangeZone');
 
-if (triggerChangeZone) {
-    triggerChangeZone.addEventListener('click', (e) => {
-        e.preventDefault(); // Prevents any unexpected form submissions
-        
-        // Wipe the old location selection from local memory
-        localStorage.removeItem('vgn_active_lga'); 
-        
-        // Unhide the selection popup modal instantly
-        const modal = document.getElementById('lgaModal');
-        if (modal) {
-            modal.classList.add('active'); 
-        }
-    });
-}
-    
-    // Modal Selectors
+    // Modal Operations Elements
     const lgaModal = document.getElementById('lgaModal');
     const confirmLgaBtn = document.getElementById('confirmLgaBtn');
     const closeLgaBtn = document.getElementById('closeLgaBtn');
     const lgaSelector = document.getElementById('lgaSelector');
 
-    // INITIALIZATION: Check if they have already saved their home LGA
-    let savedLgaZone = localStorage.getItem('vgn_active_lga');
-    
-    if (savedLgaZone && BauchiSecurityRegistry.lgas[savedLgaZone]) {
-        statusMsg.innerHTML = `SYSTEM ARMED: ${savedLgaZone.toUpperCase()} GRID ON ALERT`;
-    } else {
-        // If they open the app and have never picked an LGA, pop it open immediately to configure it
-        setTimeout(() => { lgaModal.classList.add('active'); }, 600);
+    if (triggerChangeZone) {
+        triggerChangeZone.addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('vgn_active_lga'); 
+            if (lgaModal) lgaModal.classList.add('active'); 
+        });
     }
 
-    // Load Form Values
+    // Load Form Memory Persistences
     if (stealthToggle) {
         stealthToggle.checked = localStorage.getItem('vgn_stealth_mode') === 'true';
         stealthToggle.addEventListener('change', () => localStorage.setItem('vgn_stealth_mode', stealthToggle.checked));
@@ -135,7 +178,7 @@ if (triggerChangeZone) {
     window.playSiren = () => {
         const isStealth = localStorage.getItem('vgn_stealth_mode') === 'true';
         if (!isStealth && siren) {
-            siren.play().catch(e => console.log("Audio Blocked"));
+            siren.play().catch(e => console.log("Audio Stream Blocked by Browser Security Policies"));
             if (navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 500]);
         }
     };
@@ -143,24 +186,22 @@ if (triggerChangeZone) {
     const startSOS = () => {
         if (isSent) return;
         
-        // Safety Fallback: Double check they have a zone initialized
-        savedLgaZone = localStorage.getItem('vgn_active_lga');
-        if (!savedLgaZone) {
-            lgaModal.classList.add('active');
+        let savedSectorZone = localStorage.getItem('vgn_active_lga');
+        if (!savedSectorZone || !activeRegionData || !activeRegionData.sectors[savedSectorZone]) {
+            if (lgaModal) lgaModal.classList.add('active');
             return;
         }
 
         timeLeft = 3;
-        timerDisplay.innerText = timeLeft;
+        if (timerDisplay) timerDisplay.innerText = timeLeft;
         statusMsg.innerText = "Hold for 3 Seconds...";
         
         countdown = setInterval(() => {
             timeLeft--;
-            timerDisplay.innerText = timeLeft;
+            if (timerDisplay) timerDisplay.innerText = timeLeft;
             if (timeLeft <= 0) {
                 clearInterval(countdown);
-                // Zero friction! It jumps straight to transmission using the stored zone
-                finishSOS(savedLgaZone); 
+                finishSOS(savedSectorZone); 
             }
         }, 1000);
     };
@@ -168,56 +209,66 @@ if (triggerChangeZone) {
     const cancelSOS = () => {
         if (isSent) return;
         clearInterval(countdown);
-        timerDisplay.innerText = "";
-        savedLgaZone = localStorage.getItem('vgn_active_lga');
-        statusMsg.innerText = savedLgaZone ? `SYSTEM ARMED: ${savedLgaZone.toUpperCase()} GRID` : "SYSTEM ARMED: READY";
+        if (timerDisplay) timerDisplay.innerText = "";
+        let savedSectorZone = localStorage.getItem('vgn_active_lga');
+        statusMsg.innerText = savedSectorZone ? `SYSTEM ARMED: ${savedSectorZone.toUpperCase()} SECTOR GRID` : "SYSTEM ARMED: READY";
     };
 
-    // Modal Operations
-    closeLgaBtn.addEventListener('click', () => {
-        lgaModal.classList.remove('active');
-        cancelSOS();
-    });
+    if (closeLgaBtn) {
+        closeLgaBtn.addEventListener('click', () => {
+            if (lgaModal) lgaModal.classList.remove('active');
+            cancelSOS();
+        });
+    }
 
-    confirmLgaBtn.addEventListener('click', () => {
-        const chosenZone = lgaSelector.value;
-        localStorage.setItem('vgn_active_lga', chosenZone); // Save it permanently
-        lgaModal.classList.remove('active');
-        statusMsg.innerText = `SYSTEM ARMED: ${chosenZone.toUpperCase()} GRID ON ALERT`;
-    });
+    if (confirmLgaBtn) {
+        confirmLgaBtn.addEventListener('click', () => {
+            const chosenZone = lgaSelector.value;
+            localStorage.setItem('vgn_active_lga', chosenZone);
+            if (lgaModal) lgaModal.classList.remove('active');
+            statusMsg.innerText = `SYSTEM ARMED: ${chosenZone.toUpperCase()} SECTOR ON ALERT`;
+        });
+    }
 
-    const finishSOS = (targetLgaKey) => {
+    const finishSOS = (targetSectorKey) => {
         isSent = true;
-        const targetCommand = BauchiSecurityRegistry.lgas[targetLgaKey] || BauchiSecurityRegistry.state_hq;
         
-        const hostel = localStorage.getItem('vgn_blood') || "NOT SET";
-        const studentId = localStorage.getItem('vgn_allergies') || "STAFF";
+        // Grab dynamic targeting metrics directly from the injected schema state
+        const targetCommand = activeRegionData.sectors[targetSectorKey];
+        
+        const profileInfo = localStorage.getItem('vgn_blood') || "NOT SET";
+        const locationDetails = localStorage.getItem('vgn_allergies') || "NONE SPECIFIED";
+        const localHazardsList = targetCommand.local_hazards ? targetCommand.local_hazards.join(', ') : "General Security Hazard";
 
-        statusMsg.innerHTML = `<p style="color: #0b5394; font-weight: bold; text-align: center;">🛰️ Dispatching Telemetry Payload to ${targetCommand.unit}...</p>`;
+        statusMsg.innerHTML = `<p style="color: #0b5394; font-weight: bold; text-align: center;">🛰️ Dispatching Telemetry Payload to ${targetCommand.dispatch_unit}...</p>`;
 
         navigator.geolocation.getCurrentPosition((position) => {
             const lat = position.coords.latitude;
             const lon = position.coords.longitude;
             const mapUrl = `https://maps.google.com/?q=${lat},${lon}`;
 
-            const smsBody = `🚩 BAUCHI SENTINEL GRID EMERGENCY!
-LGA Zone: ${targetLgaKey.toUpperCase()}
-Unit Routing: ${targetCommand.unit}
-Citizen Profile: ${hostel}
-Location: ${studentId}
+            const smsBody = `🚩 VGN SENTINEL SECURITY MATRIX!
+Sector Node: ${targetSectorKey.toUpperCase()}
+Dispatch Unit: ${targetCommand.dispatch_unit}
+Pioneer Operator: ${currentPioneerUsername}
+Profile Context: ${profileInfo}
+Specific Location: ${locationDetails}
+Identified Threats: ${localHazardsList}
 GPS Matrix: ${mapUrl}`;
 
-            showSmsButton(smsBody, targetCommand.dispatch); 
+            showSmsButton(smsBody, targetCommand.gateway_node); 
             window.playSiren();
         }, (err) => {
-            const smsBody = `🚩 BAUCHI SENTINEL GRID EMERGENCY!
-LGA Zone: ${targetLgaKey.toUpperCase()}
-Unit Routing: ${targetCommand.unit}
-Citzen Profile: ${hostel}
-Location: ${studentId}
+            const smsBody = `🚩 VGN SENTINEL SECURITY MATRIX!
+Sector Node: ${targetSectorKey.toUpperCase()}
+Dispatch Unit: ${targetCommand.dispatch_unit}
+Pioneer Operator: ${currentPioneerUsername}
+Profile Context: ${profileInfo}
+Specific Location: ${locationDetails}
+Identified Threats: ${localHazardsList}
 Status: Signal Degradation / GPS Lost`;
                         
-            showSmsButton(smsBody, targetCommand.dispatch);
+            showSmsButton(smsBody, targetCommand.gateway_node);
             window.playSiren();
         }, { 
             enableHighAccuracy: true, 
@@ -226,11 +277,13 @@ Status: Signal Degradation / GPS Lost`;
         });
     };
 
-    // User Event Listeners
-    sosButton.addEventListener('mousedown', startSOS);
-    sosButton.addEventListener('mouseup', cancelSOS);
-    sosButton.addEventListener('touchstart', (e) => { e.preventDefault(); startSOS(); });
-    sosButton.addEventListener('touchend', cancelSOS);
+    // Global Interactive User Event Action Hookups
+    if (sosButton) {
+        sosButton.addEventListener('mousedown', startSOS);
+        sosButton.addEventListener('mouseup', cancelSOS);
+        sosButton.addEventListener('touchstart', (e) => { e.preventDefault(); startSOS(); });
+        sosButton.addEventListener('touchend', cancelSOS);
+    }
     
     if (stopBtn) stopBtn.addEventListener('click', window.stopAll);
 });
