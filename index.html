@@ -6,6 +6,7 @@
     <title>The Bauchi Sentinel Grid | The Electorate Rapid-Response Layer</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     
+    <!-- Progressive Web App Assets -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,8 +15,10 @@
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="manifest" href="manifest.json">
     
+    <!-- Pi Network SDK Integration -->
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     
+    <!-- Service Worker Initialization Core -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -206,120 +209,89 @@
         <div class="logo">
             <i class="fa-solid fa-shield-halved" style="color: #e99311cc;"> The Bauchi Sentinel Grid</i>
         </div>
-    <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
             <div style="width: 90px; height: 90px; border-radius: 6px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid var(--apc-blue); padding: 2px; box-sizing: border-box;">
                 <img src="icon1.png" alt="PDP Logo" style="width: 100%; height: 100%; object-fit: contain;">
             </div>
         </div>
     </header>
-
-    
-
-
-
-        <div class="right-column">
-            <div class="sos-panel">
-                <div id="timer" style="font-size: 1.8rem; font-weight: bold; color: var(--sos-red);"></div>
-                <div id="statusMsg" style="font-weight: bold; margin-bottom: 10px; color: #e99311cc; font-size: 1.9rem;">SYSTEM ARMED: READY</div>
-                
-                <div id="changeZoneContainer" style="margin-bottom: 15px;">
-                    <button id="triggerChangeZone" style="background: none; border: none; color: #126be9; font-size: 1.5rem; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0;">
-                        🔄 Change Location Grid
-                    </button>
-                </div>
-
-                <div id="sos-btn" class="sos-circle-trigger">
-                    <img src="Button.png" alt="SOS Trigger Button" style="width: 100%; border-radius: 50%; pointer-events: none;">
-                </div>
-                
-                <button id="stop-btn">
-                    CANCEL DISTRESS PROTOCOL
+    <div class="right-column">
+        <div class="sos-panel">
+            <div id="timer" style="font-size: 1.8rem; font-weight: bold; color: var(--sos-red);"></div>
+            <div id="statusMsg" style="font-weight: bold; margin-bottom: 10px; color: #e99311cc; font-size: 1.9rem;">SYSTEM ARMED: READY</div>
+            
+            <div id="changeZoneContainer" style="margin-bottom: 15px;">
+                <button id="triggerChangeZone" style="background: none; border: none; color: #126be9; font-size: 1.5rem; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0;">
+                    🔄 Change Location Grid
                 </button>
+            </div>
 
-                <div style="margin-top: 25px; border-top: 1px solid #e99311cc; padding-top: 15px;">
-                    <div class="input-group-title" style="color: #e99311cc;">Citizen Identity Verification</div>
-                    <input type="text" id="bloodGroup" placeholder="Identity Profile" class="input-field">
-                    <input type="text" id="allergies" placeholder="Residence/Compound Area" class="input-field">
-                    <p class="sub-text">Identity profile dynamically appends to coordinates during emergency transmissions.</p>
+            <div id="sos-btn" class="sos-circle-trigger">
+                <img src="Button.png" alt="SOS Trigger Button" style="width: 100%; border-radius: 50%; pointer-events: none;">
+            </div>
+            
+            <button id="stop-btn">
+                CANCEL DISTRESS PROTOCOL
+            </button>
+
+            <div style="margin-top: 25px; border-top: 1px solid #e99311cc; padding-top: 15px;">
+                <div class="input-group-title" style="color: #e99311cc;">Citizen Identity Verification</div>
+                <input type="text" id="bloodGroup" placeholder="Identity Profile" class="input-field">
+                <input type="text" id="allergies" placeholder="Residence/Compound Area" class="input-field">
+                <p class="sub-text">Identity profile dynamically appends to coordinates during emergency transmissions.</p>
+            </div>
+            
+            <div id="vgn-settings" style="margin-top: 25px; background: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid #334155;  box-sizing: border-box;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label for="stealthToggle" style="color: #cbd5e1; font-size: 1.9rem; font-weight: 500; cursor: pointer;">Tactical Stealth Mode (Silent SOS)</label>
+                    <input type="checkbox" id="stealthToggle" style="width: 22px; height: 22px; cursor: pointer;">
                 </div>
-                
-                <div id="vgn-settings" style="margin-top: 25px; background: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid #334155;  box-sizing: border-box;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <label for="stealthToggle" style="color: #cbd5e1; font-size: 1.9rem; font-weight: 500; cursor: pointer;">Tactical Stealth Mode (Silent SOS)</label>
-                        <input type="checkbox" id="stealthToggle" style="width: 22px; height: 22px; cursor: pointer;">
-                    </div>
-                </div>
+            </div>
 
-                <div id="lgaModal" class="modal-overlay">
-                    <div class="modal-content">
-                        <h3><span class="shield-icon">🛡️</span> Select Location Grid</h3>
-                        <p>Identify your current Local Government Area for immediate tactical routing:</p>
-                        
-                
-                        <select id="lgaSelector" class="input-field" style="width: 100%; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
-                            <optgroup label="(Bauchi South)">
-                                <option value="bauchi" selected>Bauchi LGA (Capital Command)</option>
-                                <option value="toro">Toro LGA Command</option>
-                                <option value="alkaleri">Alkaleri LGA Command</option>
-                                <option value="bogoro">Bogoro LGA Command</option>
-                                <option value="dass">Dass LGA Command</option>
-                                <option value="kirfi">Kirfi LGA Command</option>
-                                <option value="tafawa_balewa">Tafawa Balewa LGA Command (Bununu)</option>
-                            </optgroup>
-
-                            <optgroup label="(Bauchi Central)">
-                                <option value="misau">Misau LGA Command</option>
-                                <option value="ningi">Ningi LGA Command</option>
-                                <option value="dambam">Dambam LGA Command</option>
-                                <option value="darazo">Darazo LGA Command</option>
-                                <option value="ganjuwa">Ganjuwa LGA Command (Kafin Madaki)</option>
-                                <option value="warji">Warji LGA Command</option>
-                            </optgroup>
-
-                            <optgroup label="(Bauchi North)">
-                                <option value="katagum">Katagum LGA Command (Azare)</option>
-                                <option value="gamawa">Gamawa LGA Command</option>
-                                <option value="giade">Giade LGA Command</option>
-                                <option value="itas_gadau">Itas/Gadau LGA Command</option>
-                                <option value="jamaare">Jama'are LGA Command</option>
-                                <option value="shira">Shira LGA Command (Yana)</option>
-                                <option value="zaki">Zaki LGA Command (Sakwa)</option>
-                            </optgroup>
-                        </select>
-
-                        <div class="modal-actions">
-                            <button id="confirmLgaBtn" class="btn-dispatch">PROCEED TO DISPATCH</button>
-                            <button id="closeLgaBtn" class="btn-cancel">Cancel</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div style="margin-top: 30px; border-top: 1px solid #334155; padding-top: 20px; text-align: left;">
-                    <h4 style="margin: 0 0 5px; color: #fff; font-size: 1rem;">Feedback</h4>
-                    <p style="font-size: 1.8rem; color: #126be9; margin: 0 0 15px;">Report regional tactical anomalies directly to the infrastructure dev squad.</p>
+            <!-- Dynamic Regional Overlay Modal -->
+            <div id="lgaModal" class="modal-overlay">
+                <div class="modal-content">
+                    <h3><span class="shield-icon">🛡️</span> Select Location Grid</h3>
+                    <p>Identify your current Local Government Area for immediate tactical routing:</p>
                     
-                    <form action="https://api.staticforms.xyz/submit" method="post">
-                        <input type="hidden" name="accessKey" value="sf_994c7c62301ad637286a6c00"> 
-                        <input type="hidden" name="subject" value="APC Campus Sentinel Feedback Matrix">
+                    <!-- Clean Selection Target Container for Automated JavaScript Mapping -->
+                    <select id="lgaSelector" class="input-field" style="width: 100%; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+                        <option value="">Synchronizing Regional Sectors...</option>
+                    </select>
 
-                        <input type="text" name="name" placeholder="Reporter Identifier (Name/Dept)" required class="input-field">
-                        <textarea name="message" placeholder="Log status anomalies or operational requests here..." required class="input-field" style="height: 70px; resize: none;"></textarea>
-                        
-                        <button type="submit" style="width: 100%; background: var(--apc-blue); color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1.9rem; margin-top: 5px;">
-                            SUBMIT INTEGRITY STATUS
-                        </button>
-                    </form>
+                    <div class="modal-actions">
+                        <button id="confirmLgaBtn" class="btn-dispatch">PROCEED TO DISPATCH</button>
+                        <button id="closeLgaBtn" class="btn-cancel">Cancel</button>
+                    </div>
                 </div>
+            </div>
+
+            <!-- Operational Feedback Matrix Form Module -->
+            <div style="margin-top: 30px; border-top: 1px solid #334155; padding-top: 20px; text-align: left;">
+                <h4 style="margin: 0 0 5px; color: #fff; font-size: 1rem;">Feedback</h4>
+                <p style="font-size: 1.8rem; color: #126be9; margin: 0 0 15px;">Report regional tactical anomalies directly to the infrastructure dev squad.</p>
+                
+                <form action="https://api.staticforms.xyz/submit" method="post">
+                    <input type="hidden" name="accessKey" value="sf_994c7c62301ad637286a6c00"> 
+                    <input type="hidden" name="subject" value="APC Campus Sentinel Feedback Matrix">
+
+                    <input type="text" name="name" placeholder="Reporter Identifier (Name/Dept)" required class="input-field">
+                    <textarea name="message" placeholder="Log status anomalies or operational requests here..." required class="input-field" style="height: 70px; resize: none;"></textarea>
+                    
+                    <button type="submit" style="width: 100%; background: var(--apc-blue); color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1.9rem; margin-top: 5px;">
+                        SUBMIT INTEGRITY STATUS
+                    </button>
+                </form>
             </div>
         </div>
     </div>
+</div>
 
 <footer style="margin-top: 40px; padding: 20px 0; text-align: center; font-size: 1.75rem; color: #22c55e; line-height: 1.5; border-top: 1px solid #334155;">
-       
-        <p>Telemetry structures, cached maps, and device signatures remain localized within storage sectors.</p>
-        <p>© 2026 Vigilan-NG Architecture Suite. All Rights Reserved.</p>
+    <p>Telemetry structures, cached maps, and device signatures remain localized within storage sectors.</p>
+    <p>© 2026 Vigilan-NG Architecture Suite. All Rights Reserved.</p>
 </footer>
-</div>
+
 
 <audio id="sirenAudio" src="siren.mp3" preload="auto" loop></audio>
 <script src="app.js"></script>
