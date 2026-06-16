@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Bauchi Sentinel Grid-v1';
+const CACHE_NAME = 'VGN Global Pi-v1';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
