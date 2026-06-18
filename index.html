@@ -207,11 +207,11 @@
 <div class="container">
     <header>
         <div class="logo">
-            <i class="fa-solid fa-shield-halved" style="color: #e99311cc;"> The VGN Global Pi</i>
+            <i class="fa-solid fa-shield-halved" style="color: #e99311cc;"> The VGN Global Sentinel</i>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
             <div style="width: 90px; height: 90px; border-radius: 6px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid var(--apc-blue); padding: 2px; box-sizing: border-box;">
-                <img src="VGN Pi.png" alt="PDP Logo" style="width: 100%; height: 100%; object-fit: contain;">
+                <img src="VGN LOGO.png" alt="PDP Logo" style="width: 100%; height: 100%; object-fit: contain;">
             </div>
         </div>
     </header>
@@ -248,25 +248,35 @@
                 </div>
             </div>
 
-            <!-- Dynamic Regional Overlay Modal -->
             <div id="lgaModal" class="modal-overlay">
                 <div class="modal-content">
-                    <h3><span class="shield-icon">🛡️</span> Select Location Grid</h3>
-                    <p>Identify your current Local Government Area for immediate tactical routing:</p>
+                    <h3><span class="shield-icon">🛡️</span> Configure Operational Grid</h3>
+                    <p>Establish your current international sector matrix for emergency tactical routing:</p>
                     
-                    <!-- Clean Selection Target Container for Automated JavaScript Mapping -->
-                    <select id="lgaSelector" class="input-field" style="width: 100%; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
-                        <option value="">Synchronizing Regional Sectors...</option>
-                    </select>
+                    <div class="form-group" style="margin-bottom: 15px; text-align: left;">
+                        <label for="countrySelector" style="font-weight: bold; color: #0b5394; display: block; margin-bottom: 5px;">
+                            🌍 1. SELECT GLOBAL OPERATIONAL ZONE
+                        </label>
+                        <select id="countrySelector" style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #0b5394; font-size: 1.5rem; background-color: #f8f9fa; box-sizing: border-box; color: #333;">
+                            </select>
+                    </div>
 
-                    <div class="modal-actions">
+                    <div class="form-group" style="margin-bottom: 15px; text-align: left;">
+                        <label for="lgaSelector" style="font-weight: bold; color: #e99311; display: block; margin-bottom: 5px;">
+                            🛰️ 2. SELECT REGIONAL SECTOR SECTOR
+                        </label>
+                        <select id="lgaSelector" class="input-field" style="width: 100%; padding: 12px; border-radius: 8px; margin-bottom: 5px; box-sizing: border-box;">
+                            <option value="">Synchronizing Regional Sectors...</option>
+                        </select>
+                    </div>
+
+                    <div class="modal-actions" style="margin-top: 20px;">
                         <button id="confirmLgaBtn" class="btn-dispatch">PROCEED TO DISPATCH</button>
                         <button id="closeLgaBtn" class="btn-cancel">Cancel</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Operational Feedback Matrix Form Module -->
             <div style="margin-top: 30px; border-top: 1px solid #334155; padding-top: 20px; text-align: left;">
                 <h4 style="margin: 0 0 5px; color: #fff; font-size: 1rem;">Feedback</h4>
                 <p style="font-size: 1.8rem; color: #126be9; margin: 0 0 15px;">Report regional tactical anomalies directly to the infrastructure dev squad.</p>

@@ -1,3 +1,65 @@
+// =================================================================
+// 🌐 GLOBAL MATRIX EMERGENCIES SCHEMA CONFIGURATION
+// =================================================================
+const VGN_EMBEDDED_SCHEMA = {
+  "vgn_framework_version": "2.0.0-global",
+  "supported_regions": {
+    "NG-BAU": {
+      "region_name": "Bauchi State, Nigeria",
+      "currency": "NGN",
+      "routing_medium": "SMS",
+      "sectors": {
+        "bauchi_metropolitan": {
+          "dispatch_unit": "Central HQ (Yandoka Road)",
+          "gateway_node": "+2348151849417",
+          "local_hazards": ["Market Fire", "LPG Outbreak", "Structural Incident"]
+        },
+        "aleri_sector": {
+          "dispatch_unit": "Alkaleri Command Outpost",
+          "gateway_node": "+2348150000000",
+          "local_hazards": ["Agro Field Alert", "Grazing Reserve Conflict"]
+        }
+      }
+    },
+    "ML-MOP": {
+      "region_name": "Mopti Region, Mali (Sahel Zone)",
+      "currency": "XOF",
+      "routing_medium": "SMS",
+      "sectors": {
+        "bandiagara_sector": {
+          "dispatch_unit": "Bandiagara Rural Civil Protection",
+          "gateway_node": "+22370000000",
+          "local_hazards": ["Agro Corridor Incursion", "Critical Supply Chain Ambush"]
+        }
+      }
+    },
+    "SO-GED": {
+      "region_name": "Gedo Region, Somalia",
+      "currency": "SOS",
+      "routing_medium": "SMS",
+      "sectors": {
+        "bardera_sector": {
+          "dispatch_unit": "Bardera Community Safety Hub",
+          "gateway_node": "+25261000000",
+          "local_hazards": ["Resource Point Conflict", "Remote Telemetry Distress"]
+        }
+      }
+    },
+    "CO-NSA": {
+      "region_name": "Norte de Santander, Colombia",
+      "currency": "COP",
+      "routing_medium": "SMS_GATEWAY",
+      "sectors": {
+        "catatumbo_sector": {
+          "dispatch_unit": "Catatumbo Rural Civil Defense",
+          "gateway_node": "+57300000000",
+          "local_hazards": ["Terrain Displacement Alert", "Agricultural Hub Fire"]
+        }
+      }
+    }
+  }
+};
+
 // ==========================================
 // 🌐 VGN GLOBAL SYSTEMS ARCHITECTURE CORE
 // ==========================================
@@ -5,29 +67,25 @@ let isSent = false;
 let countdown;
 let timeLeft = 3;
 
-let currentGlobalSchema = {};
+let currentGlobalSchema = VGN_EMBEDDED_SCHEMA;
 let activeRegionData = null;
 let currentPioneerUsername = "Standalone Operator";
 
 // 1. DYNAMIC LOCATION SCHEMA INITIALIZER
-async function initializeVgnGlobalEngine(regionCode = "NG-BAU") {
+function initializeVgnGlobalEngine(regionCode = "NG-BAU") {
     try {
-        // Fetch the externalized layout manifest
-        const response = await fetch('./vgn-schema.json');
-        currentGlobalSchema = await response.json();
-        
-        // Isolate the specific region selected by the Pioneer
+        currentGlobalSchema = VGN_EMBEDDED_SCHEMA;
         activeRegionData = currentGlobalSchema.supported_regions[regionCode];
         console.log(`VGN Engine Active: Optimized for ${activeRegionData.region_name}`);
+
+    renderDynamicUIComponents();
+    updateArmedStatusDisplay();
         
-        // Populate dropdown options inside your UI modal dynamically
-        renderDynamicUIComponents();
-        
-        // Setup initial armed state message
-        updateArmedStatusDisplay();
+        return true; 
     } catch (error) {
         console.error("VGN Critical: Configuration injection failed:", error);
         document.getElementById('statusMsg').innerText = "CRITICAL CONFIGURATION ERROR";
+        return false;
     }
 }
 
@@ -36,11 +94,9 @@ function renderDynamicUIComponents() {
     const lgaSelector = document.getElementById('lgaSelector');
     if (!lgaSelector || !activeRegionData) return;
     
-    // Clear existing hardcoded options
-    lgaSelector.innerHTML = "";
+lgaSelector.innerHTML = "";
     
-    // Read sectors dynamically from your JSON config
-    Object.keys(activeRegionData.sectors).forEach(sectorKey => {
+ Object.keys(activeRegionData.sectors).forEach(sectorKey => {
         const sector = activeRegionData.sectors[sectorKey];
         const option = document.createElement('option');
         option.value = sectorKey;
@@ -56,23 +112,18 @@ function updateArmedStatusDisplay() {
     if (savedSectorZone && activeRegionData && activeRegionData.sectors[savedSectorZone]) {
         statusMsg.innerHTML = `SYSTEM ARMED: ${savedSectorZone.toUpperCase()} SECTOR ON ALERT`;
     } else {
-        // If they open the app and have never picked a sector, pop open configuration modal instantly
-        const lgaModal = document.getElementById('lgaModal');
-        if (lgaModal) setTimeout(() => { lgaModal.classList.add('active'); }, 600);
+       const lgaModal = document.getElementById('lgaModal');
+       if (lgaModal) setTimeout(() => { lgaModal.classList.add('active'); }, 600);
     }
 }
 
 // 2. CROSS-PLATFORM SYSTEM TELEMETRY PAYLOAD ROUTER
 const vgnGlobalPayloadGenerator = (targetGateway, telemetryPayload) => {
-    const cleanNode = targetGateway.replace(/\s+/g, '');
-    
-    // 🍏 Device / OS Context Sniffer
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+const cleanNode = targetGateway.replace(/\s+/g, '');
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    const operatorSymbol = isIOS ? ';' : '?';
-    
-    // Safely encode the telemetry string to bypass cellular character drops
-    const serializedData = encodeURIComponent(telemetryPayload);
+const operatorSymbol = isIOS ? ';' : '?';
+const serializedData = encodeURIComponent(telemetryPayload);
     
     return `sms:${cleanNode}${operatorSymbol}body=${serializedData}`;
 };
@@ -109,34 +160,72 @@ window.stopAll = () => {
 };
 
 // 3. PI APP PLATFORM INTEGRATION WINDOW & APPLICATION EVENT LOOPS
-document.addEventListener('DOMContentLoaded', () => {
-    // Start up dynamic localization layer (Defaulting to your active Bauchi target)
-    initializeVgnGlobalEngine("NG-BAU");
-
-    // Initialize Pi SDK for Global Pioneers
-    if (typeof Pi !== 'undefined') {
-        Pi.init({ version: "2.0", sandbox: true });
+document.addEventListener('DOMContentLoaded', async () => {
+    
+    const countrySelector = document.getElementById('countrySelector');
+    
+    if (countrySelector) {
+        console.log("[VGN Core] Force-seeding global operational zones...");
         
-        const runtimeScopes = ['username', 'payments'];
-        Pi.authenticate(runtimeScopes, (incompletePayment) => {
-            console.log("Resolving pending secure ledger entries:", incompletePayment);
-        }).then((auth) => {
-            currentPioneerUsername = auth.user.username;
-            console.log(`Global VGN Session Verified. Welcome Pioneer: ${currentPioneerUsername}`);
-            
-            // 🎯 VISUAL VERIFICATION HOOK:
-            // This updates your armed banner text instantly on screen so you can confirm it works!
-            const statusMsg = document.getElementById('statusMsg');
-            if (statusMsg) {
-                statusMsg.innerHTML = `<span style="color: #388E3C; font-weight: bold;">🟢 SECURITY LOCK VERIFIED: Welcome, Pioneer ${currentPioneerUsername}</span>`;
-            }
+        countrySelector.innerHTML = `
+            <option value="NG-BAU" selected>Bauchi State, Nigeria (NGN)</option>
+            <option value="ML-MOP">Mopti Region, Mali (XOF)</option>
+            <option value="SO-GED">Gedo Region, Somalia (SOS)</option>
+            <option value="CO-NSA">Norte de Santander, Colombia (COP)</option>
+        `;
 
-        }).catch((err) => {
-            console.warn("Local standalone execution mode active (Running outside Pi Browser sandbox).", err);
+        initializeVgnGlobalEngine("NG-BAU");
+
+        countrySelector.addEventListener('change', async (e) => {
+            const chosenRegionCode = e.target.value;
+            console.log(`[VGN Global] Re-routing grid parameters to: ${chosenRegionCode}`);
+            localStorage.removeItem('vgn_active_lga');
+            initializeVgnGlobalEngine(chosenRegionCode);
         });
+    } else {
+        console.error("[VGN Critical] Could not find 'countrySelector' element in DOM!");
     }
 
-    // UI Core Selectors
+    // =================================================================
+    // PART B: FAIL-SAFE PI SDK AUTHENTICATION LOOP
+    // =================================================================
+    let authAttempts = 0;
+
+    function attemptPiAuthentication() {
+        if (typeof Pi !== 'undefined') {
+            console.log("[VGN Core] Pi SDK detected. Initializing authentication matrix...");
+            Pi.init({ version: "2.0", sandbox: true });
+            
+            const runtimeScopes = ['username', 'payments'];
+            
+            Pi.authenticate(runtimeScopes, (incompletePayment) => {
+                console.log("Resolving pending secure ledger entries:", incompletePayment);
+            }).then((auth) => {
+                currentPioneerUsername = auth.user.username;
+                console.log(`Global VGN Session Verified. Welcome Pioneer: ${currentPioneerUsername}`);
+                
+                const statusMsg = document.getElementById('statusMsg');
+                if (statusMsg) {
+                    statusMsg.innerHTML = `<span style="color: #388E3C; font-weight: bold;">🟢 SECURITY LOCK VERIFIED: Welcome, Pioneer ${currentPioneerUsername}</span>`;
+                }
+            }).catch((err) => {
+                console.error("Pi Authentication failed inside sandbox:", err);
+            });
+
+        } else if (authAttempts < 5) {
+            authAttempts++;
+            console.warn(`[VGN Core] Pi SDK not detected yet. Retry attempt ${authAttempts}/5...`);
+            setTimeout(attemptPiAuthentication, 500);
+        } else {
+            console.warn("Local standalone execution mode active (Running outside Pi Browser sandbox).");
+        }
+    }
+
+    attemptPiAuthentication();
+
+    // =================================================================
+    // PART C: DOM CACHED ELEMENTS & EVENT LISTENERS
+    // =================================================================
     const sosButton = document.getElementById('sos-btn');
     const statusMsg = document.getElementById('statusMsg');
     const timerDisplay = document.getElementById('timer');
@@ -147,11 +236,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const allergiesInput = document.getElementById('allergies');
     const triggerChangeZone = document.getElementById('triggerChangeZone');
 
-    // Modal Operations Elements
-    const lgaModal = document.getElementById('lgaModal');
-    const confirmLgaBtn = document.getElementById('confirmLgaBtn');
-    const closeLgaBtn = document.getElementById('closeLgaBtn');
-    const lgaSelector = document.getElementById('lgaSelector');
+const lgaModal = document.getElementById('lgaModal');
+const confirmLgaBtn = document.getElementById('confirmLgaBtn');
+const closeLgaBtn = document.getElementById('closeLgaBtn');
+const lgaSelector = document.getElementById('lgaSelector');
 
     if (triggerChangeZone) {
         triggerChangeZone.addEventListener('click', (e) => {
@@ -161,8 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Load Form Memory Persistences
-    if (stealthToggle) {
+if (stealthToggle) {
         stealthToggle.checked = localStorage.getItem('vgn_stealth_mode') === 'true';
         stealthToggle.addEventListener('change', () => localStorage.setItem('vgn_stealth_mode', stealthToggle.checked));
     }
@@ -232,13 +319,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const finishSOS = (targetSectorKey) => {
         isSent = true;
-        
-        // Grab dynamic targeting metrics directly from the injected schema state
-        const targetCommand = activeRegionData.sectors[targetSectorKey];
-        
-        const profileInfo = localStorage.getItem('vgn_blood') || "NOT SET";
-        const locationDetails = localStorage.getItem('vgn_allergies') || "NONE SPECIFIED";
-        const localHazardsList = targetCommand.local_hazards ? targetCommand.local_hazards.join(', ') : "General Security Hazard";
+       const targetCommand = activeRegionData.sectors[targetSectorKey];
+       const profileInfo = localStorage.getItem('vgn_blood') || "NOT SET";
+       const locationDetails = localStorage.getItem('vgn_allergies') || "NONE SPECIFIED";
+       const localHazardsList = targetCommand.local_hazards ? targetCommand.local_hazards.join(', ') : "General Security Hazard";
 
         statusMsg.innerHTML = `<p style="color: #0b5394; font-weight: bold; text-align: center;">🛰️ Dispatching Telemetry Payload to ${targetCommand.dispatch_unit}...</p>`;
 
@@ -267,7 +351,7 @@ Profile Context: ${profileInfo}
 Specific Location: ${locationDetails}
 Identified Threats: ${localHazardsList}
 Status: Signal Degradation / GPS Lost`;
-                        
+                                
             showSmsButton(smsBody, targetCommand.gateway_node);
             window.playSiren();
         }, { 
@@ -277,8 +361,7 @@ Status: Signal Degradation / GPS Lost`;
         });
     };
 
-    // Global Interactive User Event Action Hookups
-    if (sosButton) {
+if (sosButton) {
         sosButton.addEventListener('mousedown', startSOS);
         sosButton.addEventListener('mouseup', cancelSOS);
         sosButton.addEventListener('touchstart', (e) => { e.preventDefault(); startSOS(); });
