@@ -100,7 +100,9 @@ lgaSelector.innerHTML = "";
         const sector = activeRegionData.sectors[sectorKey];
         const option = document.createElement('option');
         option.value = sectorKey;
-        option.text = `${sector.dispatch_unit} (${activeRegionData.region_name})`;
+
+        const cleanSectorName = sectorKey.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+        option.text = `${cleanSectorName} (${sector.dispatch_unit})`;
         lgaSelector.appendChild(option);
     });
 }
@@ -186,42 +188,56 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error("[VGN Critical] Could not find 'countrySelector' element in DOM!");
     }
 
-    // =================================================================
-    // PART B: FAIL-SAFE PI SDK AUTHENTICATION LOOP
-    // =================================================================
-    let authAttempts = 0;
+// ==========================================
+// 🪙 BULLETPROOF ASYNCHRONOUS PI SDK CORE
+// ==========================================
+let authAttempts = 0;
 
-    function attemptPiAuthentication() {
-        if (typeof Pi !== 'undefined') {
-            console.log("[VGN Core] Pi SDK detected. Initializing authentication matrix...");
-            Pi.init({ version: "2.0", sandbox: true });
+async function runSecurePiAuthentication() {
+    if (typeof Pi !== 'undefined') {
+        console.log("[VGN Core] Pi SDK detected. Initializing handshake...");
+        try {
+            // Force the runtime engine to fully await SDK context mounting
+            await Pi.init({ version: "2.0", sandbox: true });
             
             const runtimeScopes = ['username', 'payments'];
             
+            // Execute authentication immediately after successful initialization
             Pi.authenticate(runtimeScopes, (incompletePayment) => {
-                console.log("Resolving pending secure ledger entries:", incompletePayment);
+                console.log("[VGN Core] Resolving pending ledger entries:", incompletePayment);
             }).then((auth) => {
                 currentPioneerUsername = auth.user.username;
-                console.log(`Global VGN Session Verified. Welcome Pioneer: ${currentPioneerUsername}`);
+                console.log(`[VGN Core] Matrix Session Locked. Welcome, Pioneer: ${currentPioneerUsername}`);
                 
+                // Visual validation hook for the UI banner
                 const statusMsg = document.getElementById('statusMsg');
                 if (statusMsg) {
                     statusMsg.innerHTML = `<span style="color: #388E3C; font-weight: bold;">🟢 SECURITY LOCK VERIFIED: Welcome, Pioneer ${currentPioneerUsername}</span>`;
                 }
-            }).catch((err) => {
-                console.error("Pi Authentication failed inside sandbox:", err);
+            }).catch((authError) => {
+                console.error("[VGN Core] Pi Authentication rejected:", authError);
             });
 
-        } else if (authAttempts < 5) {
-            authAttempts++;
-            console.warn(`[VGN Core] Pi SDK not detected yet. Retry attempt ${authAttempts}/5...`);
-            setTimeout(attemptPiAuthentication, 500);
-        } else {
-            console.warn("Local standalone execution mode active (Running outside Pi Browser sandbox).");
+        } catch (initError) {
+            console.error("[VGN Core] Pi SDK Initialization failed to mount:", initError);
         }
+    } else if (authAttempts < 5) {
+        authAttempts++;
+        console.warn(`[VGN Core] Script floating outside active Pi context. Retrying attempt ${authAttempts}/5...`);
+        setTimeout(runSecurePiAuthentication, 500); // 500ms heartbeat retry
+    } else {
+        console.warn("[VGN Core] Standalone execution active (Running outside Pi Browser). Fallbacks loaded.");
     }
+}
 
-    attemptPiAuthentication();
+// Fire the sequence on page ready
+document.addEventListener('DOMContentLoaded', () => {
+    // Keep your global schema engines and UI loading triggers completely intact here!
+    initializeVgnGlobalEngine("NG-BAU");
+    
+    // Fire the fail-safe async authentication sequence
+    runSecurePiAuthentication();
+});
 
     // =================================================================
     // PART C: DOM CACHED ELEMENTS & EVENT LISTENERS
