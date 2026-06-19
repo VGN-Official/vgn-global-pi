@@ -199,13 +199,20 @@ async function runSecurePiAuthentication() {
     if (typeof Pi !== 'undefined') {
         console.log("[VGN Core] Pi SDK detected. Setting up handshake sequence...");
         
+        console.log("[VGN Core] Pi SDK detected. Setting up handshake sequence...");
+        
         try {
-            // Attempt initialization, but wrap it so a "double-init" warning won't halt execution
+            // 🌐 DYNAMIC SANDBOX DETECTION
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+            // Safe initialization wrapper
             try {
-                await Pi.init({ version: "2.0", sandbox: true });
-                console.log("[VGN Core] Pi SDK Init Fresh Success.");
-            } catch (initErr) {
-                // If it's already initialized, we log it and move forward safely
+                await Pi.init({ 
+                    version: "2.0", 
+                    sandbox: isLocalhost // True on localhost, false on live Vercel production!
+                });
+                console.log(`[VGN Core] Pi SDK Init Success. Sandbox Mode: ${isLocalhost}`);
+        } catch (initErr) {
                 console.warn("[VGN Core] Pi SDK Init skipped (Likely already initialized by script tag):", initErr.message);
             }
             
