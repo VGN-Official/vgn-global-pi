@@ -1,3 +1,30 @@
+
+// =================================================================
+    // 🪙 BOT COMPLIANCE: MANUAL PI SIGN-IN BUTTON TRIGGER
+    // =================================================================
+    const piSignInBtn = document.getElementById('piSignInBtn');
+    if (piSignInBtn) {
+        piSignInBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            console.log("[VGN Core] Manual sign-in triggered by operator/bot interaction.");
+            piSignInBtn.innerText = "🔄 AUTHENTICATING...";
+            piSignInBtn.style.opacity = "0.7";
+            
+            await runSecurePiAuthentication();
+            
+            // Hide the button container once logged in successfully
+            setTimeout(() => {
+                const piAuthContainer = document.getElementById('piAuthContainer');
+                if (currentPioneerUsername !== "Standalone Operator" && piAuthContainer) {
+                    piAuthContainer.style.display = "none";
+                } else {
+                    piSignInBtn.innerText = "⚡ RETRY SECURE SIGN-IN";
+                    piSignInBtn.style.opacity = "1";
+                }
+            }, 2000);
+        });
+    }
+
 // =================================================================
 // 🌐 GLOBAL MATRIX EMERGENCIES SCHEMA CONFIGURATION
 // =================================================================
