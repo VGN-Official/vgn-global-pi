@@ -197,6 +197,61 @@ let authAttempts = 0;
 
 async function runSecurePiAuthentication() {
     if (typeof Pi !== 'undefined') {
+        console.log("[VGN Core] Pi SDK detected. Setting up handshake sequence...");
+        
+        try {
+            // Attempt initialization, but wrap it so a "double-init" warning won't halt execution
+            try {
+                await Pi.init({ version: "2.0", sandbox: true });
+                console.log("[VGN Core] Pi SDK Init Fresh Success.");
+            } catch (initErr) {
+                // If it's already initialized, we log it and move forward safely
+                console.warn("[VGN Core] Pi SDK Init skipped (Likely already initialized by script tag):", initErr.message);
+            }
+            
+            const runtimeScopes = ['username', 'payments'];
+            
+            // Execute authentication immediately
+            Pi.authenticate(runtimeScopes, (incompletePayment) => {
+                console.log("[VGN Core] Resolving pending ledger entries:", incompletePayment);
+            }).then((auth) => {
+                currentPioneerUsername = auth.user.username;
+                console.log(`[VGN Core] Matrix Session Locked. Welcome, Pioneer: ${currentPioneerUsername}`);
+                
+                unlockOperationalDashboard();
+                
+            }).catch((authError) => {
+                console.error("[VGN Core] Pi Authentication rejected:", authError);
+                const gatewayStatus = document.getElementById('gatewayStatus');
+                if (gatewayStatus) gatewayStatus.innerText = "🛑 AUTHENTICATION REJECTED. RETRY.";
+            });
+
+        } catch (coreError) {
+            console.error("[VGN Critical] Fatal error within SDK core wrapper:", coreError);
+        }
+    } else {
+        // 💻 LOCALHOST PC TESTING BYPASS
+        console.warn("[VGN Core] Standalone desktop environment detected. Activating Dev Simulation...");
+        currentPioneerUsername = "Dev-Operator-Local";
+        unlockOperationalDashboard();
+    }
+
+// 🔓 Helper function to switch screens cleanly
+function unlockOperationalDashboard() {
+    const gatewayLock = document.getElementById('vgnGatewayLock');
+    const mainDashboard = document.getElementById('vgnMainDashboard');
+    const statusMsg = document.getElementById('statusMsg');
+    
+    if (gatewayLock && mainDashboard) {
+        gatewayLock.style.display = "none";      // Hide landing page
+        mainDashboard.style.display = "block";    // Show operations grid
+    }
+
+    if (statusMsg) {
+        statusMsg.innerHTML = `<span style="color: #388E3C; font-weight: bold;">🟢 SECURITY LOCK VERIFIED: Welcome, Pioneer ${currentPioneerUsername}</span>`;
+    }
+}
+    if (typeof Pi !== 'undefined') {
         console.log("[VGN Core] Pi SDK detected. Initializing handshake...");
         try {
             await Pi.init({ version: "2.0", sandbox: true });
@@ -208,23 +263,56 @@ async function runSecurePiAuthentication() {
                 currentPioneerUsername = auth.user.username;
                 console.log(`[VGN Core] Matrix Session Locked. Welcome, Pioneer: ${currentPioneerUsername}`);
                 
-                const statusMsg = document.getElementById('statusMsg');
-                if (statusMsg) {
-                    statusMsg.innerHTML = `<span style="color: #388E3C; font-weight: bold;">🟢 SECURITY LOCK VERIFIED: Welcome, Pioneer ${currentPioneerUsername}</span>`;
-                }
+                // Unlock the grid UI inside the real Pi Browser
+                unlockOperationalDashboard();
+                
             }).catch((authError) => {
                 console.error("[VGN Core] Pi Authentication rejected:", authError);
+                const gatewayStatus = document.getElementById('gatewayStatus');
+                if (gatewayStatus) gatewayStatus.innerText = "🛑 AUTHENTICATION REJECTED. RETRY.";
             });
 
         } catch (initError) {
             console.error("[VGN Core] Pi SDK Initialization failed to mount:", initError);
         }
-    } else if (authAttempts < 5) {
-        authAttempts++;
-        console.warn(`[VGN Core] Script floating outside active Pi context. Retrying attempt ${authAttempts}/5...`);
-        setTimeout(runSecurePiAuthentication, 500);
     } else {
-        console.warn("[VGN Core] Standalone execution active (Running outside Pi Browser). Fallbacks loaded.");
+        // 💻 LOCALHOST PC TESTING BYPASS
+        console.warn("[VGN Core] Standalone desktop environment detected. Activating Dev Simulation...");
+        currentPioneerUsername = "Dev-Operator-Local";
+        
+        // Instantly unlock the dashboard on your laptop so you can test your elements!
+        unlockOperationalDashboard();
+    }
+}
+
+// 🔓 Helper function to switch screens cleanly
+function unlockOperationalDashboard() {
+    const gatewayLock = document.getElementById('vgnGatewayLock');
+    const mainDashboard = document.getElementById('vgnMainDashboard');
+    const statusMsg = document.getElementById('statusMsg');
+    
+    if (gatewayLock && mainDashboard) {
+        gatewayLock.style.display = "none";      // Hide landing page
+        mainDashboard.style.display = "block";    // Show operations grid
+    }
+
+    if (statusMsg) {
+        statusMsg.innerHTML = `<span style="color: #388E3C; font-weight: bold;">🟢 SECURITY LOCK VERIFIED: Welcome, Pioneer ${currentPioneerUsername}</span>`;
+    }
+}
+// 🔓 Helper function to switch screens cleanly
+function unlockOperationalDashboard() {
+    const gatewayLock = document.getElementById('vgnGatewayLock');
+    const mainDashboard = document.getElementById('vgnMainDashboard');
+    const statusMsg = document.getElementById('statusMsg');
+    
+    if (gatewayLock && mainDashboard) {
+        gatewayLock.style.display = "none";      // Hide landing page
+        mainDashboard.style.display = "block";    // Show operations grid
+    }
+
+    if (statusMsg) {
+        statusMsg.innerHTML = `<span style="color: #388E3C; font-weight: bold;">🟢 SECURITY LOCK VERIFIED: Welcome, Pioneer ${currentPioneerUsername}</span>`;
     }
 }
 
