@@ -78,13 +78,14 @@ function initializeVgnGlobalEngine(regionCode = "NG-BAU") {
         activeRegionData = currentGlobalSchema.supported_regions[regionCode];
         console.log(`VGN Engine Active: Optimized for ${activeRegionData.region_name}`);
 
-    renderDynamicUIComponents();
-    updateArmedStatusDisplay();
+        renderDynamicUIComponents();
+        updateArmedStatusDisplay();
         
         return true; 
     } catch (error) {
         console.error("VGN Critical: Configuration injection failed:", error);
-        document.getElementById('statusMsg').innerText = "CRITICAL CONFIGURATION ERROR";
+        const statusMsg = document.getElementById('statusMsg');
+        if (statusMsg) statusMsg.innerText = "CRITICAL CONFIGURATION ERROR";
         return false;
     }
 }
@@ -94,9 +95,9 @@ function renderDynamicUIComponents() {
     const lgaSelector = document.getElementById('lgaSelector');
     if (!lgaSelector || !activeRegionData) return;
     
-lgaSelector.innerHTML = "";
+    lgaSelector.innerHTML = "";
     
- Object.keys(activeRegionData.sectors).forEach(sectorKey => {
+    Object.keys(activeRegionData.sectors).forEach(sectorKey => {
         const sector = activeRegionData.sectors[sectorKey];
         const option = document.createElement('option');
         option.value = sectorKey;
@@ -112,7 +113,7 @@ function updateArmedStatusDisplay() {
     let savedSectorZone = localStorage.getItem('vgn_active_lga');
     
     if (savedSectorZone && activeRegionData && activeRegionData.sectors[savedSectorZone]) {
-        statusMsg.innerHTML = `SYSTEM ARMED: ${savedSectorZone.toUpperCase()} SECTOR ON ALERT`;
+        if (statusMsg) statusMsg.innerHTML = `SYSTEM ARMED: ${savedSectorZone.toUpperCase()} SECTOR ON ALERT`;
     } else {
        const lgaModal = document.getElementById('lgaModal');
        if (lgaModal) setTimeout(() => { lgaModal.classList.add('active'); }, 600);
@@ -121,17 +122,18 @@ function updateArmedStatusDisplay() {
 
 // 2. CROSS-PLATFORM SYSTEM TELEMETRY PAYLOAD ROUTER
 const vgnGlobalPayloadGenerator = (targetGateway, telemetryPayload) => {
-const cleanNode = targetGateway.replace(/\s+/g, '');
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+    const cleanNode = targetGateway.replace(/\s+/g, '');
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const operatorSymbol = isIOS ? ';' : '?';
-const serializedData = encodeURIComponent(telemetryPayload);
+    const operatorSymbol = isIOS ? ';' : '?';
+    const serializedData = encodeURIComponent(telemetryPayload);
     
     return `sms:${cleanNode}${operatorSymbol}body=${serializedData}`;
 };
 
 const showSmsButton = (body, targetGatewayNumber) => {
     const statusMsg = document.getElementById('statusMsg');
+    if (!statusMsg) return;
     const c2 = localStorage.getItem('vgn_contact2') || "";
 
     let buttonsHTML = `<div style="margin-top:15px;">`;
@@ -161,9 +163,53 @@ window.stopAll = () => {
     }
 };
 
-// 3. PI APP PLATFORM INTEGRATION WINDOW & APPLICATION EVENT LOOPS
+// ==========================================
+// 🪙 BULLETPROOF ASYNCHRONOUS PI SDK CORE
+// ==========================================
+let authAttempts = 0;
+
+async function runSecurePiAuthentication() {
+    if (typeof Pi !== 'undefined') {
+        console.log("[VGN Core] Pi SDK detected. Initializing handshake...");
+        try {
+            await Pi.init({ version: "2.0", sandbox: true });
+            const runtimeScopes = ['username', 'payments'];
+            
+            Pi.authenticate(runtimeScopes, (incompletePayment) => {
+                console.log("[VGN Core] Resolving pending ledger entries:", incompletePayment);
+            }).then((auth) => {
+                currentPioneerUsername = auth.user.username;
+                console.log(`[VGN Core] Matrix Session Locked. Welcome, Pioneer: ${currentPioneerUsername}`);
+                
+                const statusMsg = document.getElementById('statusMsg');
+                if (statusMsg) {
+                    statusMsg.innerHTML = `<span style="color: #388E3C; font-weight: bold;">🟢 SECURITY LOCK VERIFIED: Welcome, Pioneer ${currentPioneerUsername}</span>`;
+                }
+            }).catch((authError) => {
+                console.error("[VGN Core] Pi Authentication rejected:", authError);
+            });
+
+        } catch (initError) {
+            console.error("[VGN Core] Pi SDK Initialization failed to mount:", initError);
+        }
+    } else if (authAttempts < 5) {
+        authAttempts++;
+        console.warn(`[VGN Core] Script floating outside active Pi context. Retrying attempt ${authAttempts}/5...`);
+        setTimeout(runSecurePiAuthentication, 500);
+    } else {
+        console.warn("[VGN Core] Standalone execution active (Running outside Pi Browser). Fallbacks loaded.");
+    }
+}
+
+// =================================================================
+// 3. UNIFIED DOMContentLoaded HANDLER & EVENT LISTENERS
+// =================================================================
 document.addEventListener('DOMContentLoaded', async () => {
     
+    // 🪙 Priority 1: Trigger secure authentication immediately
+    await runSecurePiAuthentication();
+    
+    // 🌐 Priority 2: Set up Global Grid Infrastructure Matrix
     const countrySelector = document.getElementById('countrySelector');
     
     if (countrySelector) {
@@ -186,58 +232,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     } else {
         console.error("[VGN Critical] Could not find 'countrySelector' element in DOM!");
+        initializeVgnGlobalEngine("NG-BAU");
     }
-
-// ==========================================
-// 🪙 BULLETPROOF ASYNCHRONOUS PI SDK CORE
-// ==========================================
-let authAttempts = 0;
-
-async function runSecurePiAuthentication() {
-    if (typeof Pi !== 'undefined') {
-        console.log("[VGN Core] Pi SDK detected. Initializing handshake...");
-        try {
-            // Force the runtime engine to fully await SDK context mounting
-            await Pi.init({ version: "2.0", sandbox: true });
-            
-            const runtimeScopes = ['username', 'payments'];
-            
-            // Execute authentication immediately after successful initialization
-            Pi.authenticate(runtimeScopes, (incompletePayment) => {
-                console.log("[VGN Core] Resolving pending ledger entries:", incompletePayment);
-            }).then((auth) => {
-                currentPioneerUsername = auth.user.username;
-                console.log(`[VGN Core] Matrix Session Locked. Welcome, Pioneer: ${currentPioneerUsername}`);
-                
-                // Visual validation hook for the UI banner
-                const statusMsg = document.getElementById('statusMsg');
-                if (statusMsg) {
-                    statusMsg.innerHTML = `<span style="color: #388E3C; font-weight: bold;">🟢 SECURITY LOCK VERIFIED: Welcome, Pioneer ${currentPioneerUsername}</span>`;
-                }
-            }).catch((authError) => {
-                console.error("[VGN Core] Pi Authentication rejected:", authError);
-            });
-
-        } catch (initError) {
-            console.error("[VGN Core] Pi SDK Initialization failed to mount:", initError);
-        }
-    } else if (authAttempts < 5) {
-        authAttempts++;
-        console.warn(`[VGN Core] Script floating outside active Pi context. Retrying attempt ${authAttempts}/5...`);
-        setTimeout(runSecurePiAuthentication, 500); // 500ms heartbeat retry
-    } else {
-        console.warn("[VGN Core] Standalone execution active (Running outside Pi Browser). Fallbacks loaded.");
-    }
-}
-
-// Fire the sequence on page ready
-document.addEventListener('DOMContentLoaded', () => {
-    // Keep your global schema engines and UI loading triggers completely intact here!
-    initializeVgnGlobalEngine("NG-BAU");
-    
-    // Fire the fail-safe async authentication sequence
-    runSecurePiAuthentication();
-});
 
     // =================================================================
     // PART C: DOM CACHED ELEMENTS & EVENT LISTENERS
@@ -252,10 +248,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const allergiesInput = document.getElementById('allergies');
     const triggerChangeZone = document.getElementById('triggerChangeZone');
 
-const lgaModal = document.getElementById('lgaModal');
-const confirmLgaBtn = document.getElementById('confirmLgaBtn');
-const closeLgaBtn = document.getElementById('closeLgaBtn');
-const lgaSelector = document.getElementById('lgaSelector');
+    const lgaModal = document.getElementById('lgaModal');
+    const confirmLgaBtn = document.getElementById('confirmLgaBtn');
+    const closeLgaBtn = document.getElementById('closeLgaBtn');
+    const lgaSelector = document.getElementById('lgaSelector');
 
     if (triggerChangeZone) {
         triggerChangeZone.addEventListener('click', (e) => {
@@ -265,7 +261,7 @@ const lgaSelector = document.getElementById('lgaSelector');
         });
     }
 
-if (stealthToggle) {
+    if (stealthToggle) {
         stealthToggle.checked = localStorage.getItem('vgn_stealth_mode') === 'true';
         stealthToggle.addEventListener('change', () => localStorage.setItem('vgn_stealth_mode', stealthToggle.checked));
     }
@@ -297,7 +293,7 @@ if (stealthToggle) {
 
         timeLeft = 3;
         if (timerDisplay) timerDisplay.innerText = timeLeft;
-        statusMsg.innerText = "Hold for 3 Seconds...";
+        if (statusMsg) statusMsg.innerText = "Hold for 3 Seconds...";
         
         countdown = setInterval(() => {
             timeLeft--;
@@ -314,7 +310,7 @@ if (stealthToggle) {
         clearInterval(countdown);
         if (timerDisplay) timerDisplay.innerText = "";
         let savedSectorZone = localStorage.getItem('vgn_active_lga');
-        statusMsg.innerText = savedSectorZone ? `SYSTEM ARMED: ${savedSectorZone.toUpperCase()} SECTOR GRID` : "SYSTEM ARMED: READY";
+        if (statusMsg) statusMsg.innerText = savedSectorZone ? `SYSTEM ARMED: ${savedSectorZone.toUpperCase()} SECTOR GRID` : "SYSTEM ARMED: READY";
     };
 
     if (closeLgaBtn) {
@@ -329,18 +325,18 @@ if (stealthToggle) {
             const chosenZone = lgaSelector.value;
             localStorage.setItem('vgn_active_lga', chosenZone);
             if (lgaModal) lgaModal.classList.remove('active');
-            statusMsg.innerText = `SYSTEM ARMED: ${chosenZone.toUpperCase()} SECTOR ON ALERT`;
+            if (statusMsg) statusMsg.innerText = `SYSTEM ARMED: ${chosenZone.toUpperCase()} SECTOR ON ALERT`;
         });
     }
 
     const finishSOS = (targetSectorKey) => {
         isSent = true;
-       const targetCommand = activeRegionData.sectors[targetSectorKey];
-       const profileInfo = localStorage.getItem('vgn_blood') || "NOT SET";
-       const locationDetails = localStorage.getItem('vgn_allergies') || "NONE SPECIFIED";
-       const localHazardsList = targetCommand.local_hazards ? targetCommand.local_hazards.join(', ') : "General Security Hazard";
+        const targetCommand = activeRegionData.sectors[targetSectorKey];
+        const profileInfo = localStorage.getItem('vgn_blood') || "NOT SET";
+        const locationDetails = localStorage.getItem('vgn_allergies') || "NONE SPECIFIED";
+        const localHazardsList = targetCommand.local_hazards ? targetCommand.local_hazards.join(', ') : "General Security Hazard";
 
-        statusMsg.innerHTML = `<p style="color: #0b5394; font-weight: bold; text-align: center;">🛰️ Dispatching Telemetry Payload to ${targetCommand.dispatch_unit}...</p>`;
+        if (statusMsg) statusMsg.innerHTML = `<p style="color: #0b5394; font-weight: bold; text-align: center;">🛰️ Dispatching Telemetry Payload to ${targetCommand.dispatch_unit}...</p>`;
 
         navigator.geolocation.getCurrentPosition((position) => {
             const lat = position.coords.latitude;
@@ -377,7 +373,7 @@ Status: Signal Degradation / GPS Lost`;
         });
     };
 
-if (sosButton) {
+    if (sosButton) {
         sosButton.addEventListener('mousedown', startSOS);
         sosButton.addEventListener('mouseup', cancelSOS);
         sosButton.addEventListener('touchstart', (e) => { e.preventDefault(); startSOS(); });
